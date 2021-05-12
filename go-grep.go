@@ -37,6 +37,10 @@ func main() {
 	query = flag.Arg(0)
 	root = flag.Arg(1)
 
+	if query == "" || root == "" {
+		os.Exit(2)
+	}
+
 	filepath.Walk(root, func(path string, file os.FileInfo, err error) error {
 		if !file.IsDir() {
 			wg.Add(1)
