@@ -8,11 +8,20 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"strconv"
+
+	"github.com/morgulbrut/color256"
 )
 
 var root, query string
 var found = 1
 var wg sync.WaitGroup
+
+type result struct {
+	root  string
+	path  string
+	lines []string
+}
 
 func readFile(wg *sync.WaitGroup, path string) {
 	defer wg.Done()
@@ -23,13 +32,24 @@ func readFile(wg *sync.WaitGroup, path string) {
 	if err != nil {
 		return
 	}
+	var res result
+
 	scanner := bufio.NewScanner(file)
 	for i := 1; scanner.Scan(); i++ {
-		if strings.Contains(scanner.Text(), query) {
+		if strings.Contains(strings.ToUpper(scanner.Text()), strings.ToUpper(query)) {
 			found = 0
-			fmt.Printf("%s/%s:%d: %s\n", root, path, i, scanner.Text())
+			res.root = root
+			res.path = path
+			res.lines = append(res.lines, fmt.Sprintf("%s: %s", color256.Yellow(strconv.Itoa(i)), scanner.Text()))
 		}
 	}
+	if len(res.lines) > 0 {
+		color256.PrintHiGreen(res.path)
+		for _, l := range res.lines {
+			fmt.Printf("\t%s\n", l)
+		}
+	}
+
 }
 
 func main() {
